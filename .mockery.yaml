@@ -1,0 +1,12 @@
+all: false
+dir: "mocks/{{.PackageName}}"
+filename: "mock_{{.InterfaceName}}.go"
+mockname: "Mock{{.InterfaceName}}"
+outpkg: "mock{{.PackageName}}"
+packages:
+  github.com/jtdoepke/amp-mikrotik-port-forwarder/internal/amp:
+    interfaces:
+      Client:
+  github.com/jtdoepke/amp-mikrotik-port-forwarder/internal/mikrotik:
+    interfaces:
+      RouterClient:

@@ -1,0 +1,314 @@
+[
+  {
+    "InstanceID": "9400593d-6cad-4fc2-9e89-30e71bfc62dc",
+    "InstanceName": "AbioticFactor01",
+    "FriendlyName": "AbioticFactor",
+    "Module": "GenericModule",
+    "State": 10,
+    "Ports": [
+      {
+        "Port": 7777,
+        "Protocol": "tcp",
+        "Name": "Application Address"
+      },
+      {
+        "Port": 2225,
+        "Protocol": "tcp",
+        "Name": "SFTP Server"
+      },
+      {
+        "Port": 8082,
+        "Protocol": "tcp",
+        "Name": "Main"
+      }
+    ]
+  },
+  {
+    "InstanceID": "d84e6c99-2a92-4f75-bf4e-309909972465",
+    "InstanceName": "TarkovFikaMod40001",
+    "FriendlyName": "TarkovFikaMod400",
+    "Module": "GenericModule",
+    "State": 100,
+    "Ports": [
+      {
+        "Port": 6969,
+        "Protocol": "tcp",
+        "Name": "Application Address"
+      },
+      {
+        "Port": 2226,
+        "Protocol": "tcp",
+        "Name": "SFTP Server"
+      },
+      {
+        "Port": 8083,
+        "Protocol": "tcp",
+        "Name": "Main"
+      }
+    ]
+  },
+  {
+    "InstanceID": "126790e1-2e12-484a-b70d-b30f6d007fdb",
+    "InstanceName": "ARKSurvivalAscended01",
+    "FriendlyName": "ARKSurvivalAscended",
+    "Module": "GenericModule",
+    "State": 0,
+    "Ports": [
+      {
+        "Port": 7778,
+        "Protocol": "tcp",
+        "Name": "Application Address"
+      },
+      {
+        "Port": 2227,
+        "Protocol": "tcp",
+        "Name": "SFTP Server"
+      },
+      {
+        "Port": 8084,
+        "Protocol": "tcp",
+        "Name": "Main"
+      }
+    ]
+  },
+  {
+    "InstanceID": "d29822ed-180b-4895-9d2f-48567bb8ea04",
+    "InstanceName": "ARKSurvivalEvolved01",
+    "FriendlyName": "ARKSurvivalEvolved",
+    "Module": "GenericModule",
+    "State": 70,
+    "Ports": [
+      {
+        "Port": 7779,
+        "Protocol": "tcp",
+        "Name": "Application Address"
+      },
+      {
+        "Port": 2228,
+        "Protocol": "tcp",
+        "Name": "SFTP Server"
+      },
+      {
+        "Port": 8085,
+        "Protocol": "tcp",
+        "Name": "Main"
+      }
+    ]
+  },
+  {
+    "InstanceID": "978afd8c-5d74-4819-abbf-9a24ea1eef6d",
+    "InstanceName": "ArmaReforger01",
+    "FriendlyName": "ArmaReforger",
+    "Module": "GenericModule",
+    "State": 0,
+    "Ports": [
+      {
+        "Port": 2001,
+        "Protocol": "tcp",
+        "Name": "Application Address"
+      },
+      {
+        "Port": 2229,
+        "Protocol": "tcp",
+        "Name": "SFTP Server"
+      },
+      {
+        "Port": 8086,
+        "Protocol": "tcp",
+        "Name": "Main"
+      }
+    ]
+  },
+  {
+    "InstanceID": "8517c39a-c7ed-4237-b4a4-f51d076b4a43",
+    "InstanceName": "DayZStable01",
+    "FriendlyName": "DayZStable",
+    "Module": "GenericModule",
+    "State": 0,
+    "Ports": [
+      {
+        "Port": 2302,
+        "Protocol": "tcp",
+        "Name": "Application Address"
+      },
+      {
+        "Port": 2230,
+        "Protocol": "tcp",
+        "Name": "SFTP Server"
+      },
+      {
+        "Port": 8087,
+        "Protocol": "tcp",
+        "Name": "Main"
+      }
+    ]
+  },
+  {
+    "InstanceID": "3681a0e5-6470-409f-ac22-1783b6d94dc9",
+    "InstanceName": "FoundryVirtualTabletop01",
+    "FriendlyName": "FoundryVirtualTabletop",
+    "Module": "GenericModule",
+    "State": 0,
+    "Ports": [
+      {
+        "Port": 30000,
+        "Protocol": "tcp",
+        "Name": "Application Address"
+      },
+      {
+        "Port": 2231,
+        "Protocol": "tcp",
+        "Name": "SFTP Server"
+      },
+      {
+        "Port": 8088,
+        "Protocol": "tcp",
+        "Name": "Main"
+      }
+    ]
+  },
+  {
+    "InstanceID": "168c8c9e-768e-4fc9-afa0-03edc07018f9",
+    "InstanceName": "Minecraft01",
+    "FriendlyName": "Minecraft",
+    "Module": "Minecraft",
+    "State": 80,
+    "Ports": [
+      {
+        "Port": 25565,
+        "Protocol": "tcp",
+        "Name": "Minecraft Server Address"
+      },
+      {
+        "Port": 2232,
+        "Protocol": "tcp",
+        "Name": "SFTP Server"
+      },
+      {
+        "Port": 8089,
+        "Protocol": "tcp",
+        "Name": "Main"
+      }
+    ]
+  },
+  {
+    "InstanceID": "2dc863eb-6595-48b3-bde0-4ce1ddbc013e",
+    "InstanceName": "ProjectZomboid01",
+    "FriendlyName": "ProjectZomboid",
+    "Module": "GenericModule",
+    "State": 0,
+    "Ports": [
+      {
+        "Port": 16261,
+        "Protocol": "tcp",
+        "Name": "Application Address"
+      },
+      {
+        "Port": 2233,
+        "Protocol": "tcp",
+        "Name": "SFTP Server"
+      },
+      {
+        "Port": 8090,
+        "Protocol": "tcp",
+        "Name": "Main"
+      }
+    ]
+  },
+  {
+    "InstanceID": "521bd2be-e736-4505-8c51-56d3044cc558",
+    "InstanceName": "RimworldTogether-RimWorldServer01",
+    "FriendlyName": "RimworldTogether-RimWorldServer",
+    "Module": "GenericModule",
+    "State": 20,
+    "Ports": [
+      {
+        "Port": 25555,
+        "Protocol": "tcp",
+        "Name": "Application Address"
+      },
+      {
+        "Port": 2234,
+        "Protocol": "tcp",
+        "Name": "SFTP Server"
+      },
+      {
+        "Port": 8091,
+        "Protocol": "tcp",
+        "Name": "Main"
+      }
+    ]
+  },
+  {
+    "InstanceID": "6dd11245-c33b-41c9-a691-a0f51209d121",
+    "InstanceName": "Valheim01",
+    "FriendlyName": "Valheim",
+    "Module": "GenericModule",
+    "State": 70,
+    "Ports": [
+      {
+        "Port": 2456,
+        "Protocol": "tcp",
+        "Name": "Application Address"
+      },
+      {
+        "Port": 2235,
+        "Protocol": "tcp",
+        "Name": "SFTP Server"
+      },
+      {
+        "Port": 8092,
+        "Protocol": "tcp",
+        "Name": "Main"
+      }
+    ]
+  },
+  {
+    "InstanceID": "cadf2113-e85c-4d31-9fa4-ff066fa1a867",
+    "InstanceName": "ADS01",
+    "FriendlyName": "ADS01",
+    "Module": "ADS",
+    "State": -1,
+    "Ports": [
+      {
+        "Port": 12820,
+        "Protocol": "tcp",
+        "Name": "Game Server Address"
+      },
+      {
+        "Port": 2223,
+        "Protocol": "tcp",
+        "Name": "SFTP Server"
+      },
+      {
+        "Port": 8080,
+        "Protocol": "tcp",
+        "Name": "Main"
+      }
+    ]
+  },
+  {
+    "InstanceID": "28bcc9b5-6810-4604-8c48-02faecf9c246",
+    "InstanceName": "VintageStory118801",
+    "FriendlyName": "VintageStory1188",
+    "Module": "GenericModule",
+    "State": 20,
+    "Ports": [
+      {
+        "Port": 42420,
+        "Protocol": "tcp",
+        "Name": "Application Address"
+      },
+      {
+        "Port": 2224,
+        "Protocol": "tcp",
+        "Name": "SFTP Server"
+      },
+      {
+        "Port": 8081,
+        "Protocol": "tcp",
+        "Name": "Main"
+      }
+    ]
+  }
+]
