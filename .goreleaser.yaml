@@ -1,0 +1,54 @@
+version: 2
+
+builds:
+  - id: amp-port-sync
+    binary: amp-port-sync
+    main: .
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X github.com/jtdoepke/amp-mikrotik-port-forwarder/cmd.version={{.Version}}
+      - -X github.com/jtdoepke/amp-mikrotik-port-forwarder/cmd.commit={{.ShortCommit}}
+      - -X github.com/jtdoepke/amp-mikrotik-port-forwarder/cmd.date={{.Date}}
+
+archives:
+  - id: amp-port-sync
+    formats:
+      - tar.gz
+    files:
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: 'checksums.txt'
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+
+dockers_v2:
+  - id: docker
+    dockerfile: Dockerfile
+    images:
+      - "ghcr.io/jtdoepke/amp-mikrotik-port-forwarder"
+    tags:
+      - "{{ .Tag }}"
+      - latest
+    labels:
+      org.opencontainers.image.created: "{{.Date}}"
+      org.opencontainers.image.revision: "{{.FullCommit}}"
+      org.opencontainers.image.version: "{{.Version}}"
+      org.opencontainers.image.source: "{{.GitURL}}"
+    platforms:
+      - linux/amd64
+      - linux/arm64

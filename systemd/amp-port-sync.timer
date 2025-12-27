@@ -1,0 +1,13 @@
+[Unit]
+Description=AMP Port Forwarder Timer
+Documentation=https://github.com/jtdoepke/amp-mikrotik-port-forwarder
+
+[Timer]
+# Run every minute
+OnBootSec=30
+OnUnitActiveSec=1min
+AccuracySec=10s
+Unit=amp-port-sync-oneshot.service
+
+[Install]
+WantedBy=timers.target

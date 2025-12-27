@@ -1,0 +1,24 @@
+[Unit]
+Description=AMP Port Forwarder Service
+Documentation=https://github.com/jtdoepke/amp-mikrotik-port-forwarder
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/amp-port-sync/env
+ExecStart=/usr/local/bin/amp-port-sync sync
+Restart=on-failure
+RestartSec=10
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+# Allow reading password files
+ReadOnlyPaths=/etc/amp-port-sync
+
+[Install]
+WantedBy=multi-user.target
