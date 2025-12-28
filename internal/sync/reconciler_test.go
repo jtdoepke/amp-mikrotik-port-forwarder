@@ -423,6 +423,56 @@ func TestReconcileCreatesDisabledRulesWhenNoPorts(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestReconcileReEnablesRulesWhenPortsReturn(t *testing.T) {
+	cfg := testConfig()
+	cfg.Protocols = []string{"tcp"}
+	ampClient := mockamp.NewMockClient(t)
+	routerClient := mockmikrotik.NewMockRouterClient(t)
+
+	// Return instances with ports (game server started back up)
+	ampClient.EXPECT().GetInstances().Return([]amp.Instance{
+		{
+			InstanceName: "TestServer",
+			Module:       "GenericModule",
+			State:        amp.StateRunning,
+			Ports: []amp.Port{
+				{Port: 25565, Protocol: "tcp", Name: "Game", Type: amp.PortTypeGame},
+			},
+		},
+	}, nil)
+
+	// Existing rules are disabled with empty ports - should re-enable with new ports
+	routerClient.EXPECT().FindRuleByComment(mikrotik.RuleTypeNAT, "dstnat", "amp-sync:wan-dstnat:tcp").
+		Return(&mikrotik.Rule{ID: "*1", DstPort: "", Disabled: true, Props: map[string]string{}}, nil).Once()
+	routerClient.EXPECT().UpdateRule(mikrotik.RuleTypeNAT, "*1", mock.MatchedBy(func(r mikrotik.Rule) bool {
+		return !r.Disabled && r.DstPort == "25565"
+	})).Return(nil).Once()
+
+	routerClient.EXPECT().FindRuleByComment(mikrotik.RuleTypeNAT, "dstnat", "amp-sync:hairpin-dstnat:tcp").
+		Return(&mikrotik.Rule{ID: "*2", DstPort: "", Disabled: true, Props: map[string]string{}}, nil).Once()
+	routerClient.EXPECT().UpdateRule(mikrotik.RuleTypeNAT, "*2", mock.MatchedBy(func(r mikrotik.Rule) bool {
+		return !r.Disabled && r.DstPort == "25565"
+	})).Return(nil).Once()
+
+	routerClient.EXPECT().FindRuleByComment(mikrotik.RuleTypeNAT, "srcnat", "amp-sync:hairpin-masq:tcp").
+		Return(&mikrotik.Rule{ID: "*3", DstPort: "", Disabled: true, Props: map[string]string{}}, nil).Once()
+	routerClient.EXPECT().UpdateRule(mikrotik.RuleTypeNAT, "*3", mock.MatchedBy(func(r mikrotik.Rule) bool {
+		return !r.Disabled && r.DstPort == "25565"
+	})).Return(nil).Once()
+
+	routerClient.EXPECT().Close().Return(nil)
+
+	clientFactory := func(cfg config.RouterConfig) (mikrotik.RouterClient, error) {
+		return routerClient, nil
+	}
+
+	r, err := NewReconciler(cfg, ampClient, clientFactory, false, testLogger())
+	require.NoError(t, err)
+
+	err = r.Reconcile()
+	require.NoError(t, err)
+}
+
 func TestReconcileUpdatesWhenWANIPChanges(t *testing.T) {
 	cfg := testConfig()
 	cfg.Protocols = []string{"tcp"}
@@ -441,36 +491,44 @@ func TestReconcileUpdatesWhenWANIPChanges(t *testing.T) {
 		},
 	}, nil)
 
-	// WAN dstnat - same ports, no dst-address to compare - rule should not update
+	// WAN dstnat - same ports and all props match - rule should not update
 	routerClient.EXPECT().FindRuleByComment(mikrotik.RuleTypeNAT, "dstnat", "amp-sync:wan-dstnat:tcp").
 		Return(&mikrotik.Rule{
 			ID:      "*1",
 			DstPort: "25565",
-			Props:   map[string]string{},
+			Props: map[string]string{
+				mikrotik.PropInInterface: "WAN",
+				mikrotik.PropToAddresses: "10.0.2.1",
+			},
 		}, nil).Once()
-	// No update expected - ports same, no dst-address
+	// No update expected - ports same, all props match
 
 	// Hairpin dstnat - same ports but different WAN IP - should trigger update
 	routerClient.EXPECT().FindRuleByComment(mikrotik.RuleTypeNAT, "dstnat", "amp-sync:hairpin-dstnat:tcp").
 		Return(&mikrotik.Rule{
 			ID:      "*2",
 			DstPort: "25565",
-			Props:   map[string]string{mikrotik.PropDstAddress: "1.2.3.4"}, // Old WAN IP
+			Props: map[string]string{
+				mikrotik.PropDstAddress:  "1.2.3.4",   // Old WAN IP
+				mikrotik.PropToAddresses: "10.0.2.1", // Same forward-to
+			},
 		}, nil).Once()
 	routerClient.EXPECT().UpdateRule(mikrotik.RuleTypeNAT, "*2", mock.MatchedBy(func(r mikrotik.Rule) bool {
 		// New WAN IP should be 127.0.0.1 (from resolving "localhost" in testConfig)
 		return r.DstPort == "25565" && r.Props[mikrotik.PropDstAddress] == "127.0.0.1"
 	})).Return(nil).Once()
 
-	// Hairpin masq - dst-address is the forward-to address, not WAN IP
-	// With same ports and same dst-address, no update expected
+	// Hairpin masq - same ports and all props match - rule should not update
 	routerClient.EXPECT().FindRuleByComment(mikrotik.RuleTypeNAT, "srcnat", "amp-sync:hairpin-masq:tcp").
 		Return(&mikrotik.Rule{
 			ID:      "*3",
 			DstPort: "25565",
-			Props:   map[string]string{mikrotik.PropDstAddress: "10.0.2.1"}, // Same as forwardTo
+			Props: map[string]string{
+				mikrotik.PropSrcAddress: "10.0.1.0/24", // LANSubnet
+				mikrotik.PropDstAddress: "10.0.2.1",    // forwardTo
+			},
 		}, nil).Once()
-	// No update expected - ports same, dst-address same
+	// No update expected - ports same, all props match
 
 	routerClient.EXPECT().Close().Return(nil)
 

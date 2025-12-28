@@ -223,8 +223,8 @@ func (r *Reconciler) ensureRule(
 			"comment", rule.Comment,
 			"old_ports", existing.DstPort,
 			"new_ports", rule.DstPort,
-			"old_dst_address", existing.Props[mikrotik.PropDstAddress],
-			"new_dst_address", rule.Props[mikrotik.PropDstAddress],
+			"old_disabled", existing.Disabled,
+			"new_disabled", rule.Disabled,
 			"dry_run", r.dryRun,
 		)
 		if !r.dryRun {
@@ -244,14 +244,20 @@ func (r *Reconciler) ensureRule(
 }
 
 // ruleNeedsUpdate checks if a rule needs to be updated based on changes to
-// ports or dst-address. This ensures hairpin NAT rules are updated when the
-// WAN hostname resolves to a new IP address.
+// disabled state, ports, or properties. This ensures rules are re-enabled when
+// game servers restart, and hairpin NAT rules are updated when WAN IP changes.
 func (r *Reconciler) ruleNeedsUpdate(existing, desired *mikrotik.Rule) bool {
+	if existing.Disabled != desired.Disabled {
+		return true
+	}
 	if existing.DstPort != desired.DstPort {
 		return true
 	}
-	if existing.Props[mikrotik.PropDstAddress] != desired.Props[mikrotik.PropDstAddress] {
-		return true
+	// Check all desired props against existing
+	for key, desiredValue := range desired.Props {
+		if existing.Props[key] != desiredValue {
+			return true
+		}
 	}
 	return false
 }

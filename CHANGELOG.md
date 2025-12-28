@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.1.3] - 2025-12-28
+
+### Fixed
+
+- Fix rules never being re-enabled after game servers restart. Previously, when all game servers stopped, rules were correctly disabled, but when servers restarted, the rules remained disabled because the `Disabled` field wasn't read from RouterOS and wasn't compared during update checks.
+- Compare all desired rule properties (not just `dst-address`) when determining if a rule needs updating. This ensures changes to `to-addresses`, `src-address`, and `in-interface-list` also trigger updates.
+
 ## [v0.1.2] - 2025-12-28
 
 ### Fixed
@@ -48,7 +55,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive test coverage for reconciliation logic
 - Mock implementations for AMP and Mikrotik clients
 
-[Unreleased]: https://github.com/jtdoepke/amp-mikrotik-port-forwarder/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/jtdoepke/amp-mikrotik-port-forwarder/compare/v0.1.3...HEAD
+[v0.1.3]: https://github.com/jtdoepke/amp-mikrotik-port-forwarder/compare/v0.1.2...v0.1.3
 [v0.1.2]: https://github.com/jtdoepke/amp-mikrotik-port-forwarder/compare/v0.1.1...v0.1.2
 [v0.1.1]: https://github.com/jtdoepke/amp-mikrotik-port-forwarder/compare/v0.1.0...v0.1.1
 [v0.1.0]: https://github.com/jtdoepke/amp-mikrotik-port-forwarder/releases/tag/v0.1.0

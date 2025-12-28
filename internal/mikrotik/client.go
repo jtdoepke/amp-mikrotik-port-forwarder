@@ -66,12 +66,13 @@ func (c *routerosClient) FindRuleByComment(ruleType RuleType, chain, comment str
 	// Return the first matching rule
 	sentence := reply.Re[0]
 	rule := &Rule{
-		ID:      sentence.Map[".id"],
-		Comment: sentence.Map["comment"],
-		Chain:   sentence.Map["chain"],
-		Action:  sentence.Map["action"],
-		DstPort: sentence.Map["dst-port"],
-		Props:   make(map[string]string),
+		ID:       sentence.Map[".id"],
+		Comment:  sentence.Map["comment"],
+		Chain:    sentence.Map["chain"],
+		Action:   sentence.Map["action"],
+		DstPort:  sentence.Map["dst-port"],
+		Disabled: sentence.Map["disabled"] == "true",
+		Props:    make(map[string]string),
 	}
 
 	// Copy all properties
