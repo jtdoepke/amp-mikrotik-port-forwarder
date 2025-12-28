@@ -51,11 +51,14 @@ func (c *apiClient) login() error {
 		return fmt.Errorf("marshal login request: %w", err)
 	}
 
-	resp, err := c.httpClient.Post(
-		c.baseURL+"/API/Core/Login",
-		"application/json",
-		bytes.NewReader(body),
-	)
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/API/Core/Login", bytes.NewReader(body))
+	if err != nil {
+		return fmt.Errorf("create login request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("login request: %w", err)
 	}
@@ -98,11 +101,14 @@ func (c *apiClient) apiCall(endpoint string, args map[string]any) ([]byte, error
 		return nil, fmt.Errorf("marshal request: %w", err)
 	}
 
-	resp, err := c.httpClient.Post(
-		c.baseURL+"/API/"+endpoint,
-		"application/json",
-		bytes.NewReader(body),
-	)
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/API/"+endpoint, bytes.NewReader(body))
+	if err != nil {
+		return nil, fmt.Errorf("create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("API request: %w", err)
 	}

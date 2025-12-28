@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Add required `Accept: application/json` header to AMP API requests. Without this header, AMP returns an error response that was incorrectly parsed as a login failure.
+
 ## [v0.1.0] - 2025-12-27
 
 ### Added
