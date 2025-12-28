@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.1.1] - 2025-12-28
+
 ### Fixed
 
 - Add required `Accept: application/json` header to AMP API requests. Without this header, AMP returns an error response that was incorrectly parsed as a login failure.
@@ -40,5 +42,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive test coverage for reconciliation logic
 - Mock implementations for AMP and Mikrotik clients
 
-[Unreleased]: https://github.com/jtdoepke/amp-mikrotik-port-forwarder/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/jtdoepke/amp-mikrotik-port-forwarder/compare/v0.1.1...HEAD
+[v0.1.1]: https://github.com/jtdoepke/amp-mikrotik-port-forwarder/compare/v0.1.0...v0.1.1
 [v0.1.0]: https://github.com/jtdoepke/amp-mikrotik-port-forwarder/releases/tag/v0.1.0
