@@ -57,3 +57,9 @@ Configuration is done via CLI flags and environment variables:
 - Password files supported for K8s-style mounted secrets
 
 No config file is used. See `cmd/sync.go` for flag definitions.
+
+## Workflow
+
+- Update the CHANGELOG before commits
+- When making a version release and updating the CHANGELOG, make sure to update the links at the bottom of the CHANGELOG
+- Always use annotated git tags for versioned releases
