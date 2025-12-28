@@ -422,3 +422,65 @@ func TestReconcileCreatesDisabledRulesWhenNoPorts(t *testing.T) {
 	err = r.Reconcile()
 	require.NoError(t, err)
 }
+
+func TestReconcileUpdatesWhenWANIPChanges(t *testing.T) {
+	cfg := testConfig()
+	cfg.Protocols = []string{"tcp"}
+	ampClient := mockamp.NewMockClient(t)
+	routerClient := mockmikrotik.NewMockRouterClient(t)
+
+	// Return test instances with same ports as before
+	ampClient.EXPECT().GetInstances().Return([]amp.Instance{
+		{
+			InstanceName: "TestServer",
+			Module:       "GenericModule",
+			State:        amp.StateRunning,
+			Ports: []amp.Port{
+				{Port: 25565, Protocol: "tcp", Name: "Game", Type: amp.PortTypeGame},
+			},
+		},
+	}, nil)
+
+	// WAN dstnat - same ports, no dst-address to compare - rule should not update
+	routerClient.EXPECT().FindRuleByComment(mikrotik.RuleTypeNAT, "dstnat", "amp-sync:wan-dstnat:tcp").
+		Return(&mikrotik.Rule{
+			ID:      "*1",
+			DstPort: "25565",
+			Props:   map[string]string{},
+		}, nil).Once()
+	// No update expected - ports same, no dst-address
+
+	// Hairpin dstnat - same ports but different WAN IP - should trigger update
+	routerClient.EXPECT().FindRuleByComment(mikrotik.RuleTypeNAT, "dstnat", "amp-sync:hairpin-dstnat:tcp").
+		Return(&mikrotik.Rule{
+			ID:      "*2",
+			DstPort: "25565",
+			Props:   map[string]string{mikrotik.PropDstAddress: "1.2.3.4"}, // Old WAN IP
+		}, nil).Once()
+	routerClient.EXPECT().UpdateRule(mikrotik.RuleTypeNAT, "*2", mock.MatchedBy(func(r mikrotik.Rule) bool {
+		// New WAN IP should be 127.0.0.1 (from resolving "localhost" in testConfig)
+		return r.DstPort == "25565" && r.Props[mikrotik.PropDstAddress] == "127.0.0.1"
+	})).Return(nil).Once()
+
+	// Hairpin masq - dst-address is the forward-to address, not WAN IP
+	// With same ports and same dst-address, no update expected
+	routerClient.EXPECT().FindRuleByComment(mikrotik.RuleTypeNAT, "srcnat", "amp-sync:hairpin-masq:tcp").
+		Return(&mikrotik.Rule{
+			ID:      "*3",
+			DstPort: "25565",
+			Props:   map[string]string{mikrotik.PropDstAddress: "10.0.2.1"}, // Same as forwardTo
+		}, nil).Once()
+	// No update expected - ports same, dst-address same
+
+	routerClient.EXPECT().Close().Return(nil)
+
+	clientFactory := func(cfg config.RouterConfig) (mikrotik.RouterClient, error) {
+		return routerClient, nil
+	}
+
+	r, err := NewReconciler(cfg, ampClient, clientFactory, false, testLogger())
+	require.NoError(t, err)
+
+	err = r.Reconcile()
+	require.NoError(t, err)
+}

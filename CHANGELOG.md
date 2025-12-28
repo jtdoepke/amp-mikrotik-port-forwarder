@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.1.2] - 2025-12-28
+
+### Fixed
+
+- Update hairpin NAT rules when WAN hostname resolves to a new IP address. Previously, only port changes triggered rule updates.
+
 ## [v0.1.1] - 2025-12-28
 
 ### Fixed
@@ -42,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive test coverage for reconciliation logic
 - Mock implementations for AMP and Mikrotik clients
 
-[Unreleased]: https://github.com/jtdoepke/amp-mikrotik-port-forwarder/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/jtdoepke/amp-mikrotik-port-forwarder/compare/v0.1.2...HEAD
+[v0.1.2]: https://github.com/jtdoepke/amp-mikrotik-port-forwarder/compare/v0.1.1...v0.1.2
 [v0.1.1]: https://github.com/jtdoepke/amp-mikrotik-port-forwarder/compare/v0.1.0...v0.1.1
 [v0.1.0]: https://github.com/jtdoepke/amp-mikrotik-port-forwarder/releases/tag/v0.1.0

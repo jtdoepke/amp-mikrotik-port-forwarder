@@ -216,13 +216,15 @@ func (r *Reconciler) ensureRule(
 				return fmt.Errorf("failed to create rule %s: %w", rule.Comment, err)
 			}
 		}
-	} else if existing.DstPort != rule.DstPort {
+	} else if r.ruleNeedsUpdate(existing, &rule) {
 		// Update existing rule
 		r.logger.Info("Updating rule",
 			"router", routerName,
 			"comment", rule.Comment,
 			"old_ports", existing.DstPort,
 			"new_ports", rule.DstPort,
+			"old_dst_address", existing.Props[mikrotik.PropDstAddress],
+			"new_dst_address", rule.Props[mikrotik.PropDstAddress],
 			"dry_run", r.dryRun,
 		)
 		if !r.dryRun {
@@ -239,4 +241,17 @@ func (r *Reconciler) ensureRule(
 	}
 
 	return nil
+}
+
+// ruleNeedsUpdate checks if a rule needs to be updated based on changes to
+// ports or dst-address. This ensures hairpin NAT rules are updated when the
+// WAN hostname resolves to a new IP address.
+func (r *Reconciler) ruleNeedsUpdate(existing, desired *mikrotik.Rule) bool {
+	if existing.DstPort != desired.DstPort {
+		return true
+	}
+	if existing.Props[mikrotik.PropDstAddress] != desired.Props[mikrotik.PropDstAddress] {
+		return true
+	}
+	return false
 }
