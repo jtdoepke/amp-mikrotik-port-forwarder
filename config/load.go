@@ -10,6 +10,53 @@ import (
 
 const envPrefix = "AMP_SYNC"
 
+// LoadAMPConfig loads AMP configuration from environment variables,
+// with optional flag overrides. Flag values take precedence over env vars.
+// This allows commands to work with either env vars or CLI flags.
+func LoadAMPConfig(flagURL, flagUsername, flagPassword, flagPasswordFile string) (AMPConfig, error) {
+	cfg := AMPConfig{
+		URL: "http://127.0.0.1:8080/", // default
+	}
+
+	// Load from env vars
+	if v := getEnv("AMP_URL"); v != "" {
+		cfg.URL = v
+	}
+	if v := getEnv("AMP_USERNAME"); v != "" {
+		cfg.Username = v
+	}
+	if v := getEnv("AMP_PASSWORD"); v != "" {
+		cfg.Password = v
+	}
+	if v := getEnv("AMP_PASSWORD_FILE"); v != "" {
+		cfg.PasswordFile = v
+	}
+
+	// Override with flags if provided
+	if flagURL != "" {
+		cfg.URL = flagURL
+	}
+	if flagUsername != "" {
+		cfg.Username = flagUsername
+	}
+	if flagPassword != "" {
+		cfg.Password = flagPassword
+	}
+	if flagPasswordFile != "" {
+		cfg.PasswordFile = flagPasswordFile
+	}
+
+	// Validate - only check that required values exist from EITHER env vars OR flags
+	if cfg.Username == "" {
+		return cfg, fmt.Errorf("AMP username is required (--amp-username or AMP_SYNC_AMP_USERNAME)")
+	}
+	if cfg.Password == "" && cfg.PasswordFile == "" {
+		return cfg, fmt.Errorf("AMP password is required (--amp-password, --amp-password-file, or AMP_SYNC_AMP_PASSWORD/AMP_SYNC_AMP_PASSWORD_FILE)")
+	}
+
+	return cfg, nil
+}
+
 // Load builds configuration from environment variables and the provided options.
 // Routers can be passed directly or will be loaded from indexed env vars.
 func Load(routers []RouterConfig) (*Config, error) {

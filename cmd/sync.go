@@ -107,20 +107,13 @@ func runSync(cmd *cobra.Command, args []string) error {
 		routers = append(routers, router)
 	}
 
-	// Build config by merging flags into what Load() will build from env vars
-	// First, set env vars from flags if provided (flags take precedence)
-	if ampURL != "" {
-		_ = os.Setenv("AMP_SYNC_AMP_URL", ampURL)
+	// Load and validate AMP config from env vars + flags
+	ampCfg, err := config.LoadAMPConfig(ampURL, ampUsername, ampPassword, ampPasswordFile)
+	if err != nil {
+		return err
 	}
-	if ampUsername != "" {
-		_ = os.Setenv("AMP_SYNC_AMP_USERNAME", ampUsername)
-	}
-	if ampPassword != "" {
-		_ = os.Setenv("AMP_SYNC_AMP_PASSWORD", ampPassword)
-	}
-	if ampPasswordFile != "" {
-		_ = os.Setenv("AMP_SYNC_AMP_PASSWORD_FILE", ampPasswordFile)
-	}
+
+	// Set other flag-based env vars so Load() will use them
 	if targetIP != "" {
 		_ = os.Setenv("AMP_SYNC_TARGET_IP", targetIP)
 	}
@@ -128,7 +121,13 @@ func runSync(cmd *cobra.Command, args []string) error {
 		_ = os.Setenv("AMP_SYNC_PROTOCOLS", strings.Join(protocols, ","))
 	}
 
-	// Load configuration
+	// Set AMP config env vars so Load() will use them
+	_ = os.Setenv("AMP_SYNC_AMP_URL", ampCfg.URL)
+	_ = os.Setenv("AMP_SYNC_AMP_USERNAME", ampCfg.Username)
+	_ = os.Setenv("AMP_SYNC_AMP_PASSWORD", ampCfg.Password)
+	_ = os.Setenv("AMP_SYNC_AMP_PASSWORD_FILE", ampCfg.PasswordFile)
+
+	// Load full configuration (including routers, target IP, etc.)
 	cfg, err := config.Load(routers)
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)

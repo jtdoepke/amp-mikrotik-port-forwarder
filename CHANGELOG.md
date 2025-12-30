@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix `debug amp` command to properly support environment variables. Previously, environment variables like `AMP_SYNC_AMP_USERNAME` were not being read correctly. Now both `sync` and `debug amp` commands share the same configuration loading logic.
+
 ## [v0.1.3] - 2025-12-28
 
 ### Fixed

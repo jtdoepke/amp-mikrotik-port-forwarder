@@ -45,42 +45,20 @@ func init() {
 }
 
 func runDebugAmp(cmd *cobra.Command, args []string) error {
-	// Get URL from flag or env var
-	url := debugAmpURL
-	if url == "" {
-		url = os.Getenv("AMP_SYNC_AMP_URL")
-	}
-	if url == "" {
-		url = "http://127.0.0.1:8080/" // default
+	// Load and validate AMP config from env vars + flags
+	ampCfg, err := config.LoadAMPConfig(debugAmpURL, debugAmpUsername, debugAmpPassword, debugAmpPasswordFile)
+	if err != nil {
+		return err
 	}
 
-	// Get username from flag or env var
-	username := debugAmpUsername
-	if username == "" {
-		username = os.Getenv("AMP_SYNC_AMP_USERNAME")
-	}
-	if username == "" {
-		return fmt.Errorf("AMP username is required (--username or AMP_SYNC_AMP_USERNAME)")
-	}
-
-	// Get password from flag or env var
-	password := debugAmpPassword
-	passwordFile := debugAmpPasswordFile
-	if password == "" {
-		password = os.Getenv("AMP_SYNC_AMP_PASSWORD")
-	}
-	if passwordFile == "" {
-		passwordFile = os.Getenv("AMP_SYNC_AMP_PASSWORD_FILE")
-	}
-
-	resolvedPassword, err := config.ResolvePassword(password, passwordFile)
+	resolvedPassword, err := config.ResolvePassword(ampCfg.Password, ampCfg.PasswordFile)
 	if err != nil {
 		return fmt.Errorf("failed to resolve password: %w", err)
 	}
 
-	fmt.Fprintf(os.Stderr, "Connecting to AMP at %s...\n", url)
+	fmt.Fprintf(os.Stderr, "Connecting to AMP at %s...\n", ampCfg.URL)
 
-	client, err := amp.NewClient(url, username, resolvedPassword)
+	client, err := amp.NewClient(ampCfg.URL, ampCfg.Username, resolvedPassword)
 	if err != nil {
 		return fmt.Errorf("failed to create AMP client: %w", err)
 	}
