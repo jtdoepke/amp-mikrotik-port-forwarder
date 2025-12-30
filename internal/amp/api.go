@@ -138,3 +138,22 @@ func (c *apiClient) getInstances() ([]adsInstance, error) {
 
 	return result, nil
 }
+
+// getInstanceNetworkInfo retrieves detailed network port information for an instance.
+func (c *apiClient) getInstanceNetworkInfo(instanceName string) ([]NetworkPortInfo, error) {
+	args := map[string]any{
+		"InstanceName": instanceName,
+	}
+
+	body, err := c.apiCall("ADSModule/GetInstanceNetworkInfo", args)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []NetworkPortInfo
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, fmt.Errorf("decode network info: %w", err)
+	}
+
+	return result, nil
+}

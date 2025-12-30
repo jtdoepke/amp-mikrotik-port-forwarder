@@ -13,30 +13,66 @@ import (
 	"github.com/jtdoepke/amp-mikrotik-port-forwarder/internal/amp"
 )
 
-// CollectPorts collects all forwardable ports from instances, grouped by protocol.
-// Only ports from running game servers are included. Management ports are excluded.
-func CollectPorts(instances []amp.Instance) map[string][]int {
+// Instance states for filtering.
+const (
+	StateADS     = amp.State(-1) // ADS control panel is always "running"
+	StateIdle    = amp.State(0)
+	StateRunning = amp.State(20)
+)
+
+// CollectPorts collects all forwardable ports from instances using the GetInstanceNetworkInfo API.
+// Ports are collected from instances in ADS (-1), Idle (0), or Running (20) state.
+// Only ports where IsFirewallTarget and Verified are true are included.
+// Protocol=2 (Both) results in the port being added to both TCP and UDP lists.
+func CollectPorts(client amp.Client, instances []amp.Instance) (map[string][]int, error) {
 	ports := make(map[string][]int)
 	seen := make(map[string]bool)
 
 	for _, inst := range instances {
-		if !inst.IsGameServer() {
+		// Only fetch network info for ADS, Idle, or Running instances
+		if inst.State != StateADS && inst.State != StateIdle && inst.State != StateRunning {
 			continue
 		}
 
-		for _, port := range inst.Ports {
-			// Only forward game and SFTP ports, not management
-			if port.Type == amp.PortTypeManagement {
+		// Get detailed network info for this instance
+		networkInfo, err := client.GetInstanceNetworkInfo(inst.InstanceName)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get network info for %s: %w", inst.InstanceName, err)
+		}
+
+		for _, port := range networkInfo {
+			// Only forward ports marked as firewall targets and verified
+			if !port.IsFirewallTarget || !port.Verified {
 				continue
 			}
 
-			key := fmt.Sprintf("%s:%d", port.Protocol, port.Port)
-			if seen[key] {
-				continue
+			// Handle protocol: 0=TCP, 1=UDP, 2=Both
+			switch port.Protocol {
+			case amp.ProtocolTCP:
+				key := fmt.Sprintf("tcp:%d", port.PortNumber)
+				if !seen[key] {
+					seen[key] = true
+					ports["tcp"] = append(ports["tcp"], port.PortNumber)
+				}
+			case amp.ProtocolUDP:
+				key := fmt.Sprintf("udp:%d", port.PortNumber)
+				if !seen[key] {
+					seen[key] = true
+					ports["udp"] = append(ports["udp"], port.PortNumber)
+				}
+			case amp.ProtocolBoth:
+				// Add to both TCP and UDP
+				tcpKey := fmt.Sprintf("tcp:%d", port.PortNumber)
+				if !seen[tcpKey] {
+					seen[tcpKey] = true
+					ports["tcp"] = append(ports["tcp"], port.PortNumber)
+				}
+				udpKey := fmt.Sprintf("udp:%d", port.PortNumber)
+				if !seen[udpKey] {
+					seen[udpKey] = true
+					ports["udp"] = append(ports["udp"], port.PortNumber)
+				}
 			}
-			seen[key] = true
-
-			ports[port.Protocol] = append(ports[port.Protocol], port.Port)
 		}
 	}
 
@@ -45,7 +81,7 @@ func CollectPorts(instances []amp.Instance) map[string][]int {
 		slices.Sort(ports[proto])
 	}
 
-	return ports
+	return ports, nil
 }
 
 // FormatPortList formats a slice of ports as a comma-separated string.
@@ -104,11 +140,11 @@ func DetectPublicIP() (string, error) {
 	return ip, nil
 }
 
-// CountGameServers counts how many instances are running game servers.
-func CountGameServers(instances []amp.Instance) int {
+// CountActiveInstances counts how many instances are active (ADS, Idle, or Running).
+func CountActiveInstances(instances []amp.Instance) int {
 	count := 0
 	for _, inst := range instances {
-		if inst.IsGameServer() {
+		if inst.State == StateADS || inst.State == StateIdle || inst.State == StateRunning {
 			count++
 		}
 	}

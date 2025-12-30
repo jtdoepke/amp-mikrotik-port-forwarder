@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.1.4] - 2025-12-30
+
+### Added
+
+- Use `GetInstanceNetworkInfo` API for detailed port discovery. This provides:
+  - Protocol support for TCP, UDP, or Both (same port on TCP and UDP)
+  - Proper filtering by `IsFirewallTarget` and `Verified` flags
+  - Port forwarding for Idle instances (not just Running), enabling SFTP access even when game servers are stopped
+  - Port forwarding for ADS control panel SFTP port, enabling file access to the main control panel
+- New `debug amp-network` command to inspect detailed network port info from AMP
+- Requires `ADS.InstanceManagement.Reconfigure` permission for the AMP API user
+
 ### Fixed
 
 - Fix `debug amp` command to properly support environment variables. Previously, environment variables like `AMP_SYNC_AMP_USERNAME` were not being read correctly. Now both `sync` and `debug amp` commands share the same configuration loading logic.
@@ -59,7 +71,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive test coverage for reconciliation logic
 - Mock implementations for AMP and Mikrotik clients
 
-[Unreleased]: https://github.com/jtdoepke/amp-mikrotik-port-forwarder/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/jtdoepke/amp-mikrotik-port-forwarder/compare/v0.1.4...HEAD
+[v0.1.4]: https://github.com/jtdoepke/amp-mikrotik-port-forwarder/compare/v0.1.3...v0.1.4
 [v0.1.3]: https://github.com/jtdoepke/amp-mikrotik-port-forwarder/compare/v0.1.2...v0.1.3
 [v0.1.2]: https://github.com/jtdoepke/amp-mikrotik-port-forwarder/compare/v0.1.1...v0.1.2
 [v0.1.1]: https://github.com/jtdoepke/amp-mikrotik-port-forwarder/compare/v0.1.0...v0.1.1

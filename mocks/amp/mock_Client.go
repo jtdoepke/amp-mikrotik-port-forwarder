@@ -65,6 +65,64 @@ func (_c *MockClient_Close_Call) RunAndReturn(run func() error) *MockClient_Clos
 	return _c
 }
 
+// GetInstanceNetworkInfo provides a mock function with given fields: instanceName
+func (_m *MockClient) GetInstanceNetworkInfo(instanceName string) ([]amp.NetworkPortInfo, error) {
+	ret := _m.Called(instanceName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetInstanceNetworkInfo")
+	}
+
+	var r0 []amp.NetworkPortInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) ([]amp.NetworkPortInfo, error)); ok {
+		return rf(instanceName)
+	}
+	if rf, ok := ret.Get(0).(func(string) []amp.NetworkPortInfo); ok {
+		r0 = rf(instanceName)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]amp.NetworkPortInfo)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(instanceName)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockClient_GetInstanceNetworkInfo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetInstanceNetworkInfo'
+type MockClient_GetInstanceNetworkInfo_Call struct {
+	*mock.Call
+}
+
+// GetInstanceNetworkInfo is a helper method to define mock.On call
+//   - instanceName string
+func (_e *MockClient_Expecter) GetInstanceNetworkInfo(instanceName interface{}) *MockClient_GetInstanceNetworkInfo_Call {
+	return &MockClient_GetInstanceNetworkInfo_Call{Call: _e.mock.On("GetInstanceNetworkInfo", instanceName)}
+}
+
+func (_c *MockClient_GetInstanceNetworkInfo_Call) Run(run func(instanceName string)) *MockClient_GetInstanceNetworkInfo_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *MockClient_GetInstanceNetworkInfo_Call) Return(_a0 []amp.NetworkPortInfo, _a1 error) *MockClient_GetInstanceNetworkInfo_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockClient_GetInstanceNetworkInfo_Call) RunAndReturn(run func(string) ([]amp.NetworkPortInfo, error)) *MockClient_GetInstanceNetworkInfo_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetInstances provides a mock function with no fields
 func (_m *MockClient) GetInstances() ([]amp.Instance, error) {
 	ret := _m.Called()

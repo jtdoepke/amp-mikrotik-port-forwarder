@@ -51,6 +51,11 @@ func (c *ampClient) GetInstances() ([]Instance, error) {
 	return instances, nil
 }
 
+// GetInstanceNetworkInfo returns detailed network port information for an instance.
+func (c *ampClient) GetInstanceNetworkInfo(instanceName string) ([]NetworkPortInfo, error) {
+	return c.api.getInstanceNetworkInfo(instanceName)
+}
+
 // Close releases any resources held by the client.
 func (c *ampClient) Close() error {
 	// Sessions expire automatically, no cleanup needed

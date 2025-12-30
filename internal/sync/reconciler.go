@@ -70,11 +70,14 @@ func (r *Reconciler) Reconcile() error {
 		return fmt.Errorf("failed to get AMP instances: %w", err)
 	}
 
-	// Collect ports from running game servers
-	ports := CollectPorts(instances)
+	// Collect ports from active instances (Idle or Running)
+	ports, err := CollectPorts(r.ampClient, instances)
+	if err != nil {
+		return fmt.Errorf("failed to collect ports: %w", err)
+	}
 	r.logger.Info("Collected ports from AMP",
 		"total_instances", len(instances),
-		"game_servers", CountGameServers(instances),
+		"active_instances", CountActiveInstances(instances),
 		"tcp_ports", len(ports["tcp"]),
 		"udp_ports", len(ports["udp"]),
 	)

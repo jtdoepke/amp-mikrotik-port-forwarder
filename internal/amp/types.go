@@ -97,3 +97,38 @@ func (i *Instance) IsManagement() bool {
 func (i *Instance) IsGameServer() bool {
 	return i.IsRunning() && !i.IsManagement()
 }
+
+// Protocol represents the network protocol for a port from GetInstanceNetworkInfo.
+type Protocol int
+
+const (
+	ProtocolTCP  Protocol = 0
+	ProtocolUDP  Protocol = 1
+	ProtocolBoth Protocol = 2
+)
+
+// String returns the string representation of a Protocol.
+func (p Protocol) String() string {
+	switch p {
+	case ProtocolTCP:
+		return "TCP"
+	case ProtocolUDP:
+		return "UDP"
+	case ProtocolBoth:
+		return "Both"
+	default:
+		return fmt.Sprintf("Protocol(%d)", p)
+	}
+}
+
+// NetworkPortInfo represents detailed port information from GetInstanceNetworkInfo API.
+type NetworkPortInfo struct {
+	PortNumber        int      `json:"PortNumber"`
+	Protocol          Protocol `json:"Protocol"`
+	ProvisionNodeName string   `json:"ProvisionNodeName"`
+	Verified          bool     `json:"Verified"`
+	Description       string   `json:"Description"`
+	Range             int      `json:"Range"`
+	IsUserDefined     bool     `json:"IsUserDefined"`
+	IsFirewallTarget  bool     `json:"IsFirewallTarget"`
+}

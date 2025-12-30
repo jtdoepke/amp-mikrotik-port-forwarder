@@ -76,49 +76,66 @@ func TestNewReconcilerValidation(t *testing.T) {
 }
 
 func TestCollectPorts(t *testing.T) {
+	ampClient := mockamp.NewMockClient(t)
+
 	instances := []amp.Instance{
 		{
 			InstanceName: "GameServer1",
 			Module:       "GenericModule",
-			State:        amp.StateRunning,
-			Ports: []amp.Port{
-				{Port: 25565, Protocol: "tcp", Name: "Game", Type: amp.PortTypeGame},
-				{Port: 25565, Protocol: "udp", Name: "Game", Type: amp.PortTypeGame},
-				{Port: 2222, Protocol: "tcp", Name: "SFTP Server", Type: amp.PortTypeSFTP},
-				{Port: 8080, Protocol: "tcp", Name: "Main", Type: amp.PortTypeManagement},
-			},
+			State:        StateRunning, // Running (20)
 		},
 		{
-			InstanceName: "GameServer2",
+			InstanceName: "IdleServer",
 			Module:       "GenericModule",
-			State:        amp.StateRunning,
-			Ports: []amp.Port{
-				{Port: 7777, Protocol: "tcp", Name: "Game", Type: amp.PortTypeGame},
-			},
+			State:        StateIdle, // Idle (0)
 		},
 		{
 			InstanceName: "StoppedServer",
 			Module:       "GenericModule",
-			State:        amp.StateStopped,
-			Ports: []amp.Port{
-				{Port: 9999, Protocol: "tcp", Name: "Game", Type: amp.PortTypeGame},
-			},
+			State:        amp.State(40), // Stopped - should be skipped
 		},
 		{
-			InstanceName: "ADS",
+			InstanceName: "ADS01",
 			Module:       "ADS",
-			State:        amp.StateRunning,
-			Ports: []amp.Port{
-				{Port: 8081, Protocol: "tcp", Name: "Main", Type: amp.PortTypeManagement},
-			},
+			State:        StateADS, // ADS (-1) - should be included for SFTP
 		},
 	}
 
-	ports := CollectPorts(instances)
+	// Mock GetInstanceNetworkInfo for running server
+	ampClient.EXPECT().GetInstanceNetworkInfo("GameServer1").Return([]amp.NetworkPortInfo{
+		{PortNumber: 25565, Protocol: amp.ProtocolBoth, IsFirewallTarget: true, Verified: true, Description: "Game"},
+		{PortNumber: 2222, Protocol: amp.ProtocolTCP, IsFirewallTarget: true, Verified: true, Description: "SFTP"},
+		{PortNumber: 8080, Protocol: amp.ProtocolTCP, IsFirewallTarget: false, Verified: true, Description: "Main"}, // Not a firewall target
+	}, nil)
 
-	// Should include game ports and SFTP from running game servers
-	// Should exclude: stopped servers, management instances, management ports
-	assert.Equal(t, []int{2222, 7777, 25565}, ports["tcp"])
+	// Mock GetInstanceNetworkInfo for idle server (SFTP should be available)
+	ampClient.EXPECT().GetInstanceNetworkInfo("IdleServer").Return([]amp.NetworkPortInfo{
+		{PortNumber: 7777, Protocol: amp.ProtocolTCP, IsFirewallTarget: true, Verified: true, Description: "Game"},
+		{PortNumber: 2223, Protocol: amp.ProtocolTCP, IsFirewallTarget: true, Verified: true, Description: "SFTP"},
+		{PortNumber: 9999, Protocol: amp.ProtocolUDP, IsFirewallTarget: true, Verified: false, Description: "Unverified"}, // Not verified
+	}, nil)
+
+	// Mock GetInstanceNetworkInfo for ADS (SFTP should be included)
+	ampClient.EXPECT().GetInstanceNetworkInfo("ADS01").Return([]amp.NetworkPortInfo{
+		{PortNumber: 2221, Protocol: amp.ProtocolTCP, IsFirewallTarget: true, Verified: true, Description: "SFTP"},
+		{PortNumber: 12820, Protocol: amp.ProtocolUDP, IsFirewallTarget: true, Verified: false, Description: "Metrics"}, // Not verified - excluded
+	}, nil)
+
+	// StoppedServer should NOT have GetInstanceNetworkInfo called
+
+	ports, err := CollectPorts(ampClient, instances)
+	require.NoError(t, err)
+
+	// Should include:
+	// - GameServer1: 25565 (TCP+UDP via Both), 2222 (TCP)
+	// - IdleServer: 7777 (TCP), 2223 (TCP)
+	// - ADS01: 2221 (TCP) - SFTP port for control panel
+	// Should exclude:
+	// - StoppedServer: not ADS, Idle, or Running
+	// - Port 8080: IsFirewallTarget=false
+	// - Port 9999: Verified=false
+	// - Port 12820: Verified=false
+	assert.Equal(t, []int{2221, 2222, 2223, 7777, 25565}, ports["tcp"])
 	assert.Equal(t, []int{25565}, ports["udp"])
 }
 
@@ -150,12 +167,13 @@ func TestReconcileFirstRouter(t *testing.T) {
 		{
 			InstanceName: "TestServer",
 			Module:       "GenericModule",
-			State:        amp.StateRunning,
-			Ports: []amp.Port{
-				{Port: 25565, Protocol: "tcp", Name: "Game", Type: amp.PortTypeGame},
-				{Port: 25565, Protocol: "udp", Name: "Game", Type: amp.PortTypeGame},
-			},
+			State:        StateRunning,
 		},
+	}, nil)
+
+	// Mock GetInstanceNetworkInfo
+	ampClient.EXPECT().GetInstanceNetworkInfo("TestServer").Return([]amp.NetworkPortInfo{
+		{PortNumber: 25565, Protocol: amp.ProtocolBoth, IsFirewallTarget: true, Verified: true, Description: "Game"},
 	}, nil)
 
 	// Expect rule lookups and creates for TCP
@@ -201,12 +219,14 @@ func TestReconcileUpdateExistingRule(t *testing.T) {
 		{
 			InstanceName: "TestServer",
 			Module:       "GenericModule",
-			State:        amp.StateRunning,
-			Ports: []amp.Port{
-				{Port: 25565, Protocol: "tcp", Name: "Game", Type: amp.PortTypeGame},
-				{Port: 25566, Protocol: "tcp", Name: "Game2", Type: amp.PortTypeGame},
-			},
+			State:        StateRunning,
 		},
+	}, nil)
+
+	// Mock GetInstanceNetworkInfo
+	ampClient.EXPECT().GetInstanceNetworkInfo("TestServer").Return([]amp.NetworkPortInfo{
+		{PortNumber: 25565, Protocol: amp.ProtocolTCP, IsFirewallTarget: true, Verified: true, Description: "Game"},
+		{PortNumber: 25566, Protocol: amp.ProtocolTCP, IsFirewallTarget: true, Verified: true, Description: "Game2"},
 	}, nil)
 
 	// Existing rule has different port list - should update
@@ -248,11 +268,13 @@ func TestReconcileDryRun(t *testing.T) {
 		{
 			InstanceName: "TestServer",
 			Module:       "GenericModule",
-			State:        amp.StateRunning,
-			Ports: []amp.Port{
-				{Port: 25565, Protocol: "tcp", Name: "Game", Type: amp.PortTypeGame},
-			},
+			State:        StateRunning,
 		},
+	}, nil)
+
+	// Mock GetInstanceNetworkInfo
+	ampClient.EXPECT().GetInstanceNetworkInfo("TestServer").Return([]amp.NetworkPortInfo{
+		{PortNumber: 25565, Protocol: amp.ProtocolTCP, IsFirewallTarget: true, Verified: true, Description: "Game"},
 	}, nil)
 
 	// In dry run, we only look up rules, never create/update
@@ -308,11 +330,13 @@ func TestReconcileSubsequentRouter(t *testing.T) {
 		{
 			InstanceName: "TestServer",
 			Module:       "GenericModule",
-			State:        amp.StateRunning,
-			Ports: []amp.Port{
-				{Port: 25565, Protocol: "tcp", Name: "Game", Type: amp.PortTypeGame},
-			},
+			State:        StateRunning,
 		},
+	}, nil)
+
+	// Mock GetInstanceNetworkInfo
+	ampClient.EXPECT().GetInstanceNetworkInfo("TestServer").Return([]amp.NetworkPortInfo{
+		{PortNumber: 25565, Protocol: amp.ProtocolTCP, IsFirewallTarget: true, Verified: true, Description: "Game"},
 	}, nil)
 
 	// First router (index 0) - WAN-facing rules
@@ -434,11 +458,13 @@ func TestReconcileReEnablesRulesWhenPortsReturn(t *testing.T) {
 		{
 			InstanceName: "TestServer",
 			Module:       "GenericModule",
-			State:        amp.StateRunning,
-			Ports: []amp.Port{
-				{Port: 25565, Protocol: "tcp", Name: "Game", Type: amp.PortTypeGame},
-			},
+			State:        StateRunning,
 		},
+	}, nil)
+
+	// Mock GetInstanceNetworkInfo
+	ampClient.EXPECT().GetInstanceNetworkInfo("TestServer").Return([]amp.NetworkPortInfo{
+		{PortNumber: 25565, Protocol: amp.ProtocolTCP, IsFirewallTarget: true, Verified: true, Description: "Game"},
 	}, nil)
 
 	// Existing rules are disabled with empty ports - should re-enable with new ports
@@ -484,11 +510,13 @@ func TestReconcileUpdatesWhenWANIPChanges(t *testing.T) {
 		{
 			InstanceName: "TestServer",
 			Module:       "GenericModule",
-			State:        amp.StateRunning,
-			Ports: []amp.Port{
-				{Port: 25565, Protocol: "tcp", Name: "Game", Type: amp.PortTypeGame},
-			},
+			State:        StateRunning,
 		},
+	}, nil)
+
+	// Mock GetInstanceNetworkInfo
+	ampClient.EXPECT().GetInstanceNetworkInfo("TestServer").Return([]amp.NetworkPortInfo{
+		{PortNumber: 25565, Protocol: amp.ProtocolTCP, IsFirewallTarget: true, Verified: true, Description: "Game"},
 	}, nil)
 
 	// WAN dstnat - same ports and all props match - rule should not update
